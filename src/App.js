@@ -1,26 +1,53 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import * as request from 'superagent'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends React.Component {
+  state = {
+    messages: [],
+    message: ''
+  }
+  source = new EventSource('http://localhost:5000/stream')
+
+  componentDidMount  () {
+    this.source.onmessage = (event) => {
+      const messages = JSON.parse(event.data)
+      this.setState({ messages })
+    }
+  }
+
+  onSubmit = async (event) => {
+    event.preventDefault()
+
+    const response = await
+    request
+      .post('http://localhost:5000/message')
+      .send({ message: this.state.message })
+
+      this.setState({ message: ''})
+      console.log('response test', response)
+  }
+
+  onChange = (event)  =>{
+    const { value } = event.target
+
+    this.setState({ message: value })
+  }
+  render() {
+    const messages = this.state.messages.map((message, index) => <p
+      key={index}>
+      {message}
+    </p>)
+
+    const form = 
+    <form onSubmit={this.onSubmit}>
+      <input
+        type='text'
+        value={this.state.message} onChange={this.onChange}
+       />    
+      <button type='submit'>Send</button>
+    </form>
+    return <main>{form}{messages}</main>
+  }
 }
 
-export default App;
+export default App
